@@ -384,7 +384,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             const SizedBox(height: 16),
             
             DropdownButtonFormField<String>(
-              initialValue: _agreementSubmitted,
+              value: _agreementSubmitted,
               decoration: const InputDecoration(
                 labelText: 'Agreement Submitted? *',
                 prefixIcon: Icon(Icons.description),
