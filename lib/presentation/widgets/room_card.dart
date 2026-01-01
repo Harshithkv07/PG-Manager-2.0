@@ -49,6 +49,15 @@ class RoomCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor();
     final available = room.capacity - occupancy;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Responsive sizing
+    final isMobile = screenWidth < 600;
+    final isTablet = screenWidth >= 600 && screenWidth < 1200;
+    final cardPadding = isMobile ? 12.0 : (isTablet ? 14.0 : 16.0);
+    final roomNumberFontSize = isMobile ? 16.0 : (isTablet ? 18.0 : 20.0);
+    final bedsFontSize = isMobile ? 16.0 : (isTablet ? 17.0 : 18.0);
+    final priceFontSize = isMobile ? 13.0 : 14.0;
 
     return InkWell(
       onTap: () => _showRoomDetails(context),
@@ -70,31 +79,42 @@ class RoomCard extends StatelessWidget {
           ),
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.all(cardPadding),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // Room Number
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 12 : 16,
+                  vertical: isMobile ? 6 : 8,
+                ),
                 decoration: BoxDecoration(
                   color: statusColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  'Room ${room.roomNumber}',
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Room ${room.roomNumber}',
+                    style: TextStyle(
+                      fontSize: roomNumberFontSize,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? 8 : 12),
               
               // Status Badge
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isMobile ? 10 : 12,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.cardBackground,
                   borderRadius: BorderRadius.circular(8),
@@ -102,48 +122,59 @@ class RoomCard extends StatelessWidget {
                 child: Text(
                   _getStatusText(),
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: isMobile ? 11 : 12,
                     fontWeight: FontWeight.bold,
                     color: statusColor,
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: isMobile ? 8 : 12),
               
               // Occupancy Info
-              Text(
-                '$occupancy/${room.capacity} Beds',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  '$occupancy/${room.capacity} Beds',
+                  style: TextStyle(
+                    fontSize: bedsFontSize,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                  maxLines: 1,
                 ),
               ),
               const SizedBox(height: 4),
               Text(
                 '$available Available',
-                style: const TextStyle(
-                  fontSize: 14,
+                style: TextStyle(
+                  fontSize: isMobile ? 13 : 14,
                   color: AppColors.textSecondary,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 8),
+              SizedBox(height: isMobile ? 6 : 8),
               
               // Price
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.currency_rupee,
-                    size: 16,
+                    size: isMobile ? 14 : 16,
                     color: AppColors.goldAccent,
                   ),
-                  Text(
-                    '${room.price}/month',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.goldAccent,
-                      fontWeight: FontWeight.bold,
+                  Flexible(
+                    child: Text(
+                      '${room.price}/month',
+                      style: TextStyle(
+                        fontSize: priceFontSize,
+                        color: AppColors.goldAccent,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

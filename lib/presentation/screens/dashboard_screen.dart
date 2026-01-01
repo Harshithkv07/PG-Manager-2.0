@@ -16,6 +16,15 @@ class DashboardScreen extends StatefulWidget {
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
+  
+  // Calculate grid columns based on screen width
+  int _getGridColumns(double width) {
+    if (width < 600) return 1;        // Mobile
+    if (width < 900) return 2;        // Tablet portrait
+    if (width < 1200) return 3;       // Tablet landscape
+    return 4;                          // Desktop
+  }
+  
   @override
   void initState() {
     super.initState();
@@ -74,74 +83,92 @@ class _DashboardScreenState extends State<DashboardScreen> {
               const StatsPanel(),
               const SizedBox(height: 24),
               
-              // Controls Row
-              Row(
-                children: [
-                  // Filter Dropdown
-                  Expanded(
-                    child: Consumer<RoomProvider>(
-                      builder: (context, roomProvider, _) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: BoxDecoration(
-                            color: AppColors.cardBackground,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.borderColor),
-                          ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              value: roomProvider.currentFilter,
-                              isExpanded: true,
-                              icon: const Icon(Icons.filter_list),
-                              items: const [
-                                DropdownMenuItem(
-                                  value: 'all',
-                                  child: Text('Show All Rooms'),
-                                ),
-                                DropdownMenuItem(
-                                  value: 'available',
-                                  child: Text('Available Only'),
-                                ),
-                              ],
-                              onChanged: (value) {
-                                if (value != null) {
-                                  roomProvider.setFilter(value);
-                                }
-                              },
+              // Controls Row - Responsive
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final isMobile = constraints.maxWidth < 600;
+                  final isTablet = constraints.maxWidth >= 600 && constraints.maxWidth < 900;
+                  
+                  return Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: [
+                      // Filter Dropdown
+                      Consumer<RoomProvider>(
+                        builder: (context, roomProvider, _) {
+                          return Container(
+                            width: isMobile ? double.infinity : (isTablet ? constraints.maxWidth * 0.48 : 200),
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: BoxDecoration(
+                              color: AppColors.cardBackground,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.borderColor),
+                            ),
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButton<String>(
+                                value: roomProvider.currentFilter,
+                                isExpanded: true,
+                                icon: const Icon(Icons.filter_list),
+                                items: const [
+                                  DropdownMenuItem(
+                                    value: 'all',
+                                    child: Text('Show All Rooms'),
+                                  ),
+                                  DropdownMenuItem(
+                                    value: 'available',
+                                    child: Text('Available Only'),
+                                  ),
+                                ],
+                                onChanged: (value) {
+                                  if (value != null) {
+                                    roomProvider.setFilter(value);
+                                  }
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      
+                      // Set Prices Button
+                      SizedBox(
+                        width: isMobile ? double.infinity : null,
+                        child: ElevatedButton.icon(
+                          onPressed: _showPriceManager,
+                          icon: const Icon(Icons.attach_money),
+                          label: Text(isMobile ? 'Set Prices' : 'Set Prices'),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 20 : 20,
+                              vertical: 16,
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  
-                  // Set Prices Button
-                  ElevatedButton.icon(
-                    onPressed: _showPriceManager,
-                    icon: const Icon(Icons.attach_money),
-                    label: const Text('Set Prices'),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  
-                  // Download Excel Button
-                  ElevatedButton.icon(
-                    onPressed: _downloadExcel,
-                    icon: const Icon(Icons.download),
-                    label: const Text('Excel'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.successColor,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    ),
-                  ),
-                ],
+                        ),
+                      ),
+                      
+                      // Download Excel Button
+                      SizedBox(
+                        width: isMobile ? double.infinity : null,
+                        child: ElevatedButton.icon(
+                          onPressed: _downloadExcel,
+                          icon: const Icon(Icons.download),
+                          label: const Text('Excel'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.successColor,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 20 : 20,
+                              vertical: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
               const SizedBox(height: 24),
               
-              // Room Grid
+              // Room Grid - Responsive
               Consumer<RoomProvider>(
                 builder: (context, roomProvider, _) {
                   if (roomProvider.isLoading) {
@@ -167,22 +194,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     );
                   }
                   
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.2,
-                    ),
-                    itemCount: rooms.length,
-                    itemBuilder: (context, index) {
-                      final room = rooms[index];
-                      final occupancy = roomProvider.occupancyMap[room.roomNumber] ?? 0;
-                      return RoomCard(
-                        room: room,
-                        occupancy: occupancy,
+                  return LayoutBuilder(
+                    builder: (context, constraints) {
+                      final columns = _getGridColumns(constraints.maxWidth);
+                      final spacing = constraints.maxWidth < 600 ? 12.0 : 16.0;
+                      
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columns,
+                          crossAxisSpacing: spacing,
+                          mainAxisSpacing: spacing,
+                          childAspectRatio: constraints.maxWidth < 600 ? 1.3 : 1.2,
+                        ),
+                        itemCount: rooms.length,
+                        itemBuilder: (context, index) {
+                          final room = rooms[index];
+                          final occupancy = roomProvider.occupancyMap[room.roomNumber] ?? 0;
+                          return RoomCard(
+                            room: room,
+                            occupancy: occupancy,
+                          );
+                        },
                       );
                     },
                   );

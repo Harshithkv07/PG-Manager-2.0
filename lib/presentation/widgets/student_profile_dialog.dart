@@ -4,7 +4,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/utils/whatsapp_helper.dart';
 import 'rent_history_dialog.dart';
 
-class StudentProfileDialog extends StatelessWidget {
+class StudentProfileDialog extends StatefulWidget {
   final StudentModel student;
 
   const StudentProfileDialog({
@@ -12,7 +12,29 @@ class StudentProfileDialog extends StatelessWidget {
     required this.student,
   });
 
-  Widget _buildInfoRow(String label, String value, {IconData? icon, VoidCallback? onIconTap}) {
+  @override
+  State<StudentProfileDialog> createState() => _StudentProfileDialogState();
+}
+
+class _StudentProfileDialogState extends State<StudentProfileDialog> {
+
+  Future<void> _sendWhatsAppMessage(String phone, String message) async {
+    final success = await WhatsAppHelper.sendCustomMessage(phone, message);
+    
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success 
+            ? 'Opening WhatsApp...' 
+            : 'Failed to open WhatsApp. Please check if WhatsApp is installed.'),
+          backgroundColor: success ? AppColors.primaryAccent : AppColors.errorColor,
+          duration: Duration(seconds: success ? 2 : 4),
+        ),
+      );
+    }
+  }
+
+  Widget _buildInfoRow(String label, String value, {IconData? icon, String? whatsappPhone, String? whatsappMessage}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -40,10 +62,10 @@ class StudentProfileDialog extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (icon != null && onIconTap != null)
+                if (icon != null && whatsappPhone != null && whatsappMessage != null)
                   IconButton(
                     icon: Icon(icon, size: 20, color: AppColors.primaryAccent),
-                    onPressed: onIconTap,
+                    onPressed: () => _sendWhatsAppMessage(whatsappPhone, whatsappMessage),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -130,15 +152,13 @@ class StudentProfileDialog extends StatelessWidget {
                     ),
                     const Divider(height: 24),
                     
-                    _buildInfoRow('Date of Birth', student.dob),
+                    _buildInfoRow('Date of Birth', widget.student.dob),
                     _buildInfoRow(
                       'Contact Number',
-                      student.contact,
+                      widget.student.contact,
                       icon: Icons.message,
-                      onIconTap: () => WhatsAppHelper.sendCustomMessage(
-                        student.contact,
-                        'Hello ${student.name}!',
-                      ),
+                      whatsappPhone: widget.student.contact,
+                      whatsappMessage: 'Hello ${widget.student.name}!',
                     ),
                     
                     const SizedBox(height: 24),
@@ -151,25 +171,21 @@ class StudentProfileDialog extends StatelessWidget {
                     ),
                     const Divider(height: 24),
                     
-                    _buildInfoRow("Father's Name", student.fatherName),
+                    _buildInfoRow("Father's Name", widget.student.fatherName),
                     _buildInfoRow(
                       "Father's Number",
-                      student.fatherNumber,
+                      widget.student.fatherNumber,
                       icon: Icons.message,
-                      onIconTap: () => WhatsAppHelper.sendCustomMessage(
-                        student.fatherNumber,
-                        'Hello, this is regarding ${student.name}.',
-                      ),
+                      whatsappPhone: widget.student.fatherNumber,
+                      whatsappMessage: 'Hello, this is regarding ${widget.student.name}.',
                     ),
-                    _buildInfoRow("Mother's Name", student.motherName),
+                    _buildInfoRow("Mother's Name", widget.student.motherName),
                     _buildInfoRow(
                       "Mother's Number",
-                      student.motherNumber,
+                      widget.student.motherNumber,
                       icon: Icons.message,
-                      onIconTap: () => WhatsAppHelper.sendCustomMessage(
-                        student.motherNumber,
-                        'Hello, this is regarding ${student.name}.',
-                      ),
+                      whatsappPhone: widget.student.motherNumber,
+                      whatsappMessage: 'Hello, this is regarding ${widget.student.name}.',
                     ),
                     
                     const SizedBox(height: 24),
@@ -182,13 +198,13 @@ class StudentProfileDialog extends StatelessWidget {
                     ),
                     const Divider(height: 24),
                     
-                    _buildInfoRow('College/Workplace', student.college),
-                    _buildInfoRow('Hometown', student.hometown),
-                    _buildInfoRow('Address', student.address),
-                    _buildInfoRow('Advance Amount', '₹${student.advanceAmount}'),
-                    _buildInfoRow('Agreement Submitted', student.agreementSubmitted),
-                    _buildInfoRow('Rent Status', student.rentStatus),
-                    _buildInfoRow('Payment Mode', student.paymentMode),
+                    _buildInfoRow('College/Workplace', widget.student.college),
+                    _buildInfoRow('Hometown', widget.student.hometown),
+                    _buildInfoRow('Address', widget.student.address),
+                    _buildInfoRow('Advance Amount', '₹${widget.student.advanceAmount}'),
+                    _buildInfoRow('Agreement Submitted', widget.student.agreementSubmitted),
+                    _buildInfoRow('Rent Status', widget.student.rentStatus),
+                    _buildInfoRow('Payment Mode', widget.student.paymentMode),
                   ],
                 ),
               ),
@@ -202,7 +218,7 @@ class StudentProfileDialog extends StatelessWidget {
                 onPressed: () {
                   showDialog(
                     context: context,
-                    builder: (context) => RentHistoryDialog(student: student),
+                    builder: (context) => RentHistoryDialog(student: widget.student),
                   );
                 },
                 icon: const Icon(Icons.history),

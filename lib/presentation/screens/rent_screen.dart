@@ -99,13 +99,16 @@ class _RentScreenState extends State<RentScreen> {
   }
 
   Future<void> _sendReminder(String contact, String name, int roomNumber) async {
-    await WhatsAppHelper.sendRentReminder(contact, name, roomNumber);
+    final success = await WhatsAppHelper.sendRentReminder(contact, name, roomNumber);
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Opening WhatsApp...'),
-          backgroundColor: AppColors.primaryAccent,
+        SnackBar(
+          content: Text(success 
+            ? 'Opening WhatsApp...' 
+            : 'Failed to open WhatsApp. Please check if WhatsApp is installed.'),
+          backgroundColor: success ? AppColors.primaryAccent : AppColors.errorColor,
+          duration: Duration(seconds: success ? 2 : 4),
         ),
       );
     }

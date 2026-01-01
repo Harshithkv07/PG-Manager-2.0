@@ -3,19 +3,17 @@ import 'package:url_launcher/url_launcher.dart';
 class WhatsAppHelper {
   // Format phone number for WhatsApp (remove spaces, dashes, etc.)
   static String _formatPhoneNumber(String phone) {
-    String cleaned = phone.replaceAll(RegExp(r'[^\d+]'), '');
+    // Remove all non-digit characters
+    String cleaned = phone.replaceAll(RegExp(r'[^\d]'), '');
     
-    // Add country code if not present (assuming India +91)
-    if (!cleaned.startsWith('+')) {
-      if (cleaned.length == 10) {
-        cleaned = '+91$cleaned';
-      } else if (!cleaned.startsWith('91')) {
-        cleaned = '+91$cleaned';
-      } else {
-        cleaned = '+$cleaned';
-      }
+    // Add country code if not present (assuming India 91)
+    if (cleaned.length == 10) {
+      cleaned = '91$cleaned';
+    } else if (!cleaned.startsWith('91') && cleaned.length > 10) {
+      cleaned = '91$cleaned';
     }
     
+    // Return digits only (no + sign for wa.me URLs)
     return cleaned;
   }
 
@@ -46,13 +44,38 @@ class WhatsAppHelper {
   // Core method to send WhatsApp message
   static Future<bool> _sendWhatsAppMessage(String phone, String message) async {
     final encodedMessage = Uri.encodeComponent(message);
-    final url = 'https://wa.me/$phone?text=$encodedMessage';
     
-    final uri = Uri.parse(url);
+    // Try primary URL scheme (wa.me - works on both web and mobile)
+    final waUrl = 'https://wa.me/$phone?text=$encodedMessage';
+    final waUri = Uri.parse(waUrl);
     
-    if (await canLaunchUrl(uri)) {
-      return await launchUrl(uri, mode: LaunchMode.externalApplication);
+    try {
+      if (await canLaunchUrl(waUri)) {
+        final launched = await launchUrl(
+          waUri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (launched) return true;
+      }
+    } catch (e) {
+      print('wa.me scheme failed: $e');
     }
+    
+    // Try fallback URL scheme (whatsapp:// - app-specific)
+    final whatsappUrl = 'whatsapp://send?phone=$phone&text=$encodedMessage';
+    final whatsappUri = Uri.parse(whatsappUrl);
+    
+    try {
+      if (await canLaunchUrl(whatsappUri)) {
+        return await launchUrl(
+          whatsappUri,
+          mode: LaunchMode.externalApplication,
+        );
+      }
+    } catch (e) {
+      print('whatsapp:// scheme failed: $e');
+    }
+    
     return false;
   }
 }
