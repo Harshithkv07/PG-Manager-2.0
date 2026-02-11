@@ -54,8 +54,9 @@ class StatsPanel extends StatelessWidget {
                       ],
                     )
                   : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Flexible(
+                        Expanded(
                           child: _StatItem(
                             icon: Icons.bed,
                             label: 'Total Capacity',
@@ -66,7 +67,7 @@ class StatsPanel extends StatelessWidget {
                           ),
                         ),
                         const VerticalDivider(width: 32),
-                        Flexible(
+                        Expanded(
                           child: _StatItem(
                             icon: Icons.people,
                             label: 'Occupied',
@@ -77,7 +78,7 @@ class StatsPanel extends StatelessWidget {
                           ),
                         ),
                         const VerticalDivider(width: 32),
-                        Flexible(
+                        Expanded(
                           child: _StatItem(
                             icon: Icons.hotel,
                             label: 'Available',
@@ -123,6 +124,7 @@ class _StatItem extends StatelessWidget {
     final iconPadding = isMobile ? 12.0 : 16.0;
     
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
           padding: EdgeInsets.all(iconPadding),

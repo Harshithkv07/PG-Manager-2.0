@@ -62,7 +62,8 @@ class _RentHistoryDialogState extends State<RentHistoryDialog> {
       final monthStr = DateFormat('yyyy-MM').format(currentMonth);
       
       // Check if we have a record for this month
-      final existing = existingHistory.where((h) => h.month == monthStr).firstOrNull;
+      final matching = existingHistory.where((h) => h.month == monthStr);
+      final existing = matching.isEmpty ? null : matching.first;
       
       if (existing != null) {
         months.add(existing);

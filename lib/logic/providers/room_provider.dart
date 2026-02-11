@@ -8,7 +8,7 @@ class RoomProvider with ChangeNotifier {
   final StudentRepository _studentRepo = StudentRepository();
   
   List<RoomConfigModel> _rooms = [];
-  Map<int, int> _occupancyMap = {};
+  final Map<int, int> _occupancyMap = {};
   bool _isLoading = false;
   String _filter = 'all'; // 'all' or 'available'
 
@@ -54,6 +54,52 @@ class RoomProvider with ChangeNotifier {
   void setFilter(String filter) {
     _filter = filter;
     notifyListeners();
+  }
+
+  // Add a new room
+  Future<bool> addRoom({
+    required int roomNumber,
+    required int capacity,
+    required int price,
+  }) async {
+    try {
+      // Prevent duplicate room numbers
+      final existing = await _roomRepo.getRoomByNumber(roomNumber);
+      if (existing != null) {
+        print('Room $roomNumber already exists');
+        return false;
+      }
+
+      final room = RoomConfigModel(
+        roomNumber: roomNumber,
+        capacity: capacity,
+        price: price,
+      );
+      await _roomRepo.insertRoom(room);
+      await loadRooms();
+      return true;
+    } catch (e) {
+      print('Error adding room: $e');
+      return false;
+    }
+  }
+
+  // Delete room (only if no students assigned)
+  Future<bool> deleteRoom(int roomNumber) async {
+    try {
+      final occupancy = await _studentRepo.getRoomOccupancy(roomNumber);
+      if (occupancy > 0) {
+        print('Cannot delete room $roomNumber, occupancy = $occupancy');
+        return false;
+      }
+
+      await _roomRepo.deleteRoom(roomNumber);
+      await loadRooms();
+      return true;
+    } catch (e) {
+      print('Error deleting room: $e');
+      return false;
+    }
   }
 
   // Update room price

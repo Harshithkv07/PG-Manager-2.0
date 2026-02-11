@@ -50,13 +50,12 @@ class WhatsAppHelper {
     final waUri = Uri.parse(waUrl);
     
     try {
-      if (await canLaunchUrl(waUri)) {
-        final launched = await launchUrl(
-          waUri,
-          mode: LaunchMode.externalApplication,
-        );
-        if (launched) return true;
-      }
+      // Try launching directly - canLaunchUrl can be unreliable on Android
+      final launched = await launchUrl(
+        waUri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (launched) return true;
     } catch (e) {
       print('wa.me scheme failed: $e');
     }
@@ -66,12 +65,11 @@ class WhatsAppHelper {
     final whatsappUri = Uri.parse(whatsappUrl);
     
     try {
-      if (await canLaunchUrl(whatsappUri)) {
-        return await launchUrl(
-          whatsappUri,
-          mode: LaunchMode.externalApplication,
-        );
-      }
+      final launched = await launchUrl(
+        whatsappUri,
+        mode: LaunchMode.externalApplication,
+      );
+      if (launched) return true;
     } catch (e) {
       print('whatsapp:// scheme failed: $e');
     }

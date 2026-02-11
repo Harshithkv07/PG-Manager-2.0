@@ -34,6 +34,173 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  Future<void> _showAddRoomDialog() async {
+    final roomNumberController = TextEditingController();
+    final capacityController = TextEditingController();
+    final priceController = TextEditingController();
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Room'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: roomNumberController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Room Number',
+                    prefixIcon: Icon(Icons.meeting_room),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: capacityController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Beds (Capacity)',
+                    prefixIcon: Icon(Icons.bed),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: priceController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Rent per Month',
+                    prefixIcon: Icon(Icons.currency_rupee),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final roomText = roomNumberController.text.trim();
+                final capacityText = capacityController.text.trim();
+                final priceText = priceController.text.trim();
+
+                final roomNumber = int.tryParse(roomText);
+                final capacity = int.tryParse(capacityText);
+                final price = int.tryParse(priceText);
+
+                if (roomNumber == null || capacity == null || price == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter valid numeric values for all fields.'),
+                      backgroundColor: AppColors.errorColor,
+                    ),
+                  );
+                  return;
+                }
+
+                final roomProvider =
+                    Provider.of<RoomProvider>(context, listen: false);
+                final success = await roomProvider.addRoom(
+                  roomNumber: roomNumber,
+                  capacity: capacity,
+                  price: price,
+                );
+
+                if (!mounted) return;
+
+                Navigator.of(context).pop();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Room $roomNumber added successfully.'
+                          : 'Room $roomNumber already exists or could not be added.',
+                    ),
+                    backgroundColor:
+                        success ? AppColors.successColor : AppColors.errorColor,
+                  ),
+                );
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _showDeleteRoomDialog() async {
+    final roomNumberController = TextEditingController();
+
+    await showDialog<void>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete Room'),
+          content: TextField(
+            controller: roomNumberController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              labelText: 'Room Number',
+              prefixIcon: Icon(Icons.meeting_room),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.errorColor,
+              ),
+              onPressed: () async {
+                final roomText = roomNumberController.text.trim();
+                final roomNumber = int.tryParse(roomText);
+
+                if (roomNumber == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a valid room number.'),
+                      backgroundColor: AppColors.errorColor,
+                    ),
+                  );
+                  return;
+                }
+
+                final roomProvider =
+                    Provider.of<RoomProvider>(context, listen: false);
+                final success = await roomProvider.deleteRoom(roomNumber);
+
+                if (!mounted) return;
+
+                Navigator.of(context).pop();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      success
+                          ? 'Room $roomNumber deleted successfully.'
+                          : 'Cannot delete room $roomNumber. It may have students assigned or does not exist.',
+                    ),
+                    backgroundColor:
+                        success ? AppColors.successColor : AppColors.errorColor,
+                  ),
+                );
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _downloadExcel() async {
     final studentProvider = Provider.of<StudentProvider>(context, listen: false);
     final roomProvider = Provider.of<RoomProvider>(context, listen: false);
@@ -130,6 +297,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         },
                       ),
                       
+                      // Add Room Button
+                      SizedBox(
+                        width: isMobile ? double.infinity : null,
+                        child: ElevatedButton.icon(
+                          onPressed: _showAddRoomDialog,
+                          icon: const Icon(Icons.add),
+                          label: const Text('Add Room'),
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 20 : 20,
+                              vertical: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                      // Delete Room Button
+                      SizedBox(
+                        width: isMobile ? double.infinity : null,
+                        child: ElevatedButton.icon(
+                          onPressed: _showDeleteRoomDialog,
+                          icon: const Icon(Icons.delete),
+                          label: const Text('Delete Room'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.errorColor.withOpacity(0.9),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: isMobile ? 20 : 20,
+                              vertical: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+
                       // Set Prices Button
                       SizedBox(
                         width: isMobile ? double.infinity : null,

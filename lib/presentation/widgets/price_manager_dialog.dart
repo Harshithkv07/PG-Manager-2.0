@@ -12,7 +12,7 @@ class PriceManagerDialog extends StatefulWidget {
 
 class _PriceManagerDialogState extends State<PriceManagerDialog> {
   final _priceController = TextEditingController();
-  int? _selectedRoomNumber;
+  final Set<int> _selectedRoomNumbers = {};
   int? _selectedCapacity;
 
   @override
@@ -22,10 +22,10 @@ class _PriceManagerDialogState extends State<PriceManagerDialog> {
   }
 
   Future<void> _updateSingleRoom() async {
-    if (_selectedRoomNumber == null || _priceController.text.isEmpty) {
+    if (_selectedRoomNumbers.isEmpty || _priceController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select a room and enter a price'),
+          content: Text('Please select at least one room and enter a price'),
           backgroundColor: AppColors.errorColor,
         ),
       );
@@ -43,14 +43,20 @@ class _PriceManagerDialogState extends State<PriceManagerDialog> {
       return;
     }
 
-    await Provider.of<RoomProvider>(context, listen: false)
-        .updateRoomPrice(_selectedRoomNumber!, newPrice);
+    final roomProvider = Provider.of<RoomProvider>(context, listen: false);
+    for (final roomNumber in _selectedRoomNumbers) {
+      await roomProvider.updateRoomPrice(roomNumber, newPrice);
+    }
 
     if (mounted) {
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Room price updated successfully'),
+        SnackBar(
+          content: Text(
+            _selectedRoomNumbers.length == 1
+                ? 'Room price updated successfully'
+                : 'Prices updated for ${_selectedRoomNumbers.length} rooms',
+          ),
           backgroundColor: AppColors.successColor,
         ),
       );
@@ -121,6 +127,8 @@ class _PriceManagerDialogState extends State<PriceManagerDialog> {
                       headingRowColor: WidgetStateProperty.all(
                         AppColors.secondaryBackground,
                       ),
+                      // We render our own checkbox column; disable DataTable's built-in one
+                      showCheckboxColumn: false,
                       columns: const [
                         DataColumn(label: Text('Select')),
                         DataColumn(label: Text('Room No')),
@@ -128,23 +136,21 @@ class _PriceManagerDialogState extends State<PriceManagerDialog> {
                         DataColumn(label: Text('Current Price')),
                       ],
                       rows: rooms.map((room) {
+                        final isSelected =
+                            _selectedRoomNumbers.contains(room.roomNumber);
                         return DataRow(
-                          selected: _selectedRoomNumber == room.roomNumber,
-                          onSelectChanged: (selected) {
-                            setState(() {
-                              _selectedRoomNumber = selected == true ? room.roomNumber : null;
-                              _selectedCapacity = selected == true ? room.capacity : null;
-                            });
-                          },
                           cells: [
                             DataCell(
-                              Radio<int>(
-                                value: room.roomNumber,
-                                groupValue: _selectedRoomNumber,
+                              Checkbox(
+                                value: isSelected,
                                 onChanged: (value) {
                                   setState(() {
-                                    _selectedRoomNumber = value;
-                                    _selectedCapacity = room.capacity;
+                                    if (value == true) {
+                                      _selectedRoomNumbers.add(room.roomNumber);
+                                      _selectedCapacity = room.capacity;
+                                    } else {
+                                      _selectedRoomNumbers.remove(room.roomNumber);
+                                    }
                                   });
                                 },
                               ),

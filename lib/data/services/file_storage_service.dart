@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:intl/intl.dart';
+import 'package:open_filex/open_filex.dart';
 
 class FileStorageService {
   // Get the base directory for screenshots
@@ -96,11 +97,8 @@ class FileStorageService {
         } else if (Platform.isLinux) {
           await Process.run('xdg-open', [screenshotPath]);
         } else if (Platform.isAndroid || Platform.isIOS) {
-          // On mobile, we can't directly open files with Process.run
-          // The file picker package handles viewing on mobile
-          // Or you could use a package like open_file
-          print('Screenshot path: $screenshotPath');
-          // For now, just log the path - you can add open_file package if needed
+          // Use open_filex on mobile platforms
+          await OpenFilex.open(screenshotPath);
         }
       }
     } catch (e) {

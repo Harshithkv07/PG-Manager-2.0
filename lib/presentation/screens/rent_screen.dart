@@ -7,6 +7,7 @@ import '../../logic/providers/room_provider.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/whatsapp_helper.dart';
 import '../../data/services/file_storage_service.dart';
+import '../../data/database/payment_history_repository.dart';
 
 class RentScreen extends StatefulWidget {
   const RentScreen({super.key});
@@ -16,6 +17,9 @@ class RentScreen extends StatefulWidget {
 }
 
 class _RentScreenState extends State<RentScreen> {
+  final PaymentHistoryRepository _paymentHistoryRepository =
+      PaymentHistoryRepository();
+  final FileStorageService _fileStorageService = FileStorageService();
   @override
   void initState() {
     super.initState();
@@ -60,10 +64,9 @@ class _RentScreenState extends State<RentScreen> {
         
         if (result != null && result.files.single.path != null) {
           try {
-            final fileService = FileStorageService();
             final currentMonth = DateFormat('yyyy-MM').format(DateTime.now());
             
-            screenshotPath = await fileService.savePaymentScreenshot(
+            screenshotPath = await _fileStorageService.savePaymentScreenshot(
               sourcePath: result.files.single.path!,
               studentName: studentName,
               roomNumber: roomNumber,
@@ -96,6 +99,35 @@ class _RentScreenState extends State<RentScreen> {
         );
       }
     }
+  }
+
+  Future<void> _viewCurrentMonthScreenshot(int studentId) async {
+    final currentMonth = DateFormat('yyyy-MM').format(DateTime.now());
+    final payment = await _paymentHistoryRepository.getPaymentForMonth(
+      studentId,
+      currentMonth,
+    );
+
+    if (payment == null || payment.screenshotPath == null) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No screenshot saved for this month.'),
+          backgroundColor: AppColors.errorColor,
+        ),
+      );
+      return;
+    }
+
+    await _fileStorageService.openScreenshot(payment.screenshotPath!);
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Opening payment screenshot...'),
+        backgroundColor: AppColors.primaryAccent,
+      ),
+    );
   }
 
   Future<void> _sendReminder(String contact, String name, int roomNumber) async {
@@ -295,21 +327,29 @@ class _RentScreenState extends State<RentScreen> {
                     );
                   }
                   
-                  return SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
+                  return SizedBox(
+                    width: double.infinity,
                     child: Card(
-                      child: DataTable(
-                        headingRowColor: WidgetStateProperty.all(
-                          AppColors.secondaryBackground,
-                        ),
-                        columns: const [
-                          DataColumn(label: Text('Room', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('Student Name', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('Rent Status', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('Payment Mode', style: TextStyle(fontWeight: FontWeight.bold))),
-                          DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
-                        ],
-                        rows: students.map((student) {
+                      child: LayoutBuilder(
+                        builder: (context, tableConstraints) {
+                          return SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                minWidth: tableConstraints.maxWidth,
+                              ),
+                              child: DataTable(
+                                headingRowColor: WidgetStateProperty.all(
+                                  AppColors.secondaryBackground,
+                                ),
+                                columns: const [
+                                  DataColumn(label: Text('Room', style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text('Student Name', style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text('Rent Status', style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text('Payment Mode', style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text('Actions', style: TextStyle(fontWeight: FontWeight.bold))),
+                                ],
+                                rows: students.map((student) {
                           final isPaid = student.rentStatus == 'Paid';
                           final rowColor = isPaid ? AppColors.paymentPaid.withOpacity(0.1) : AppColors.paymentPending.withOpacity(0.1);
                           
@@ -356,23 +396,58 @@ class _RentScreenState extends State<RentScreen> {
                                   children: [
                                     if (!isPaid) ...[
                                       IconButton(
-                                        icon: const Icon(Icons.check_circle, color: AppColors.successColor),
-                                        onPressed: () => _markAsPaid(student.id!, student.name, student.roomNumber),
+                                        icon: const Icon(
+                                          Icons.check_circle,
+                                          color: AppColors.successColor,
+                                        ),
+                                        onPressed: () => _markAsPaid(
+                                          student.id!,
+                                          student.name,
+                                          student.roomNumber,
+                                        ),
                                         tooltip: 'Mark as Paid',
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.message, color: AppColors.primaryAccent),
-                                        onPressed: () => _sendReminder(student.contact, student.name, student.roomNumber),
+                                        icon: const Icon(
+                                          Icons.message,
+                                          color: AppColors.primaryAccent,
+                                        ),
+                                        onPressed: () => _sendReminder(
+                                          student.contact,
+                                          student.name,
+                                          student.roomNumber,
+                                        ),
                                         tooltip: 'Send Reminder',
                                       ),
-                                    ] else
-                                      const Icon(Icons.done_all, color: AppColors.successColor),
+                                    ] else ...[
+                                      const Icon(
+                                        Icons.done_all,
+                                        color: AppColors.successColor,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      IconButton(
+                                        icon: const Icon(
+                                          Icons.image,
+                                          color: AppColors.primaryAccent,
+                                        ),
+                                        onPressed: () =>
+                                            _viewCurrentMonthScreenshot(
+                                          student.id!,
+                                        ),
+                                        tooltip:
+                                            'View screenshot for this month',
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),
                             ],
+                                );
+                              }).toList(),
+                              ),
+                            ),
                           );
-                        }).toList(),
+                        },
                       ),
                     ),
                   );

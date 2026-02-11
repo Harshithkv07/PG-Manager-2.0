@@ -93,7 +93,7 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
                   radius: 32,
                   backgroundColor: AppColors.primaryAccent.withOpacity(0.2),
                   child: Text(
-                    student.name[0].toUpperCase(),
+                    widget.student.name[0].toUpperCase(),
                     style: const TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -107,7 +107,7 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        student.name,
+                        widget.student.name,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -119,7 +119,7 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          'Room ${student.roomNumber}',
+                          'Room ${widget.student.roomNumber}',
                           style: const TextStyle(
                             color: AppColors.primaryAccent,
                             fontWeight: FontWeight.bold,
