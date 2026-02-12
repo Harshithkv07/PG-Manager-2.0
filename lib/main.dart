@@ -5,6 +5,7 @@ import 'logic/providers/auth_provider.dart';
 import 'logic/providers/student_provider.dart';
 import 'logic/providers/room_provider.dart';
 import 'logic/providers/rent_provider.dart';
+import 'logic/providers/accounts_provider.dart';
 import 'presentation/screens/login_screen.dart';
 import 'presentation/screens/welcome_screen.dart';
 
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => StudentProvider()),
         ChangeNotifierProvider(create: (_) => RoomProvider()),
         ChangeNotifierProvider(create: (_) => RentProvider()),
+        ChangeNotifierProvider(create: (_) => AccountsProvider()),
       ],
       child: MaterialApp(
         title: 'PG Management',

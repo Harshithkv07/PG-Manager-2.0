@@ -28,7 +28,7 @@ class DatabaseHelper {
     
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -80,6 +80,29 @@ class DatabaseHelper {
       )
     ''');
 
+    // Create expenses table
+    await db.execute('''
+      CREATE TABLE expenses (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL,
+        amount REAL NOT NULL,
+        category TEXT NOT NULL,
+        note TEXT DEFAULT '',
+        created_at TEXT NOT NULL
+      )
+    ''');
+
+    // Create daily_accounts table
+    await db.execute('''
+      CREATE TABLE daily_accounts (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT NOT NULL UNIQUE,
+        opening_balance REAL NOT NULL,
+        closing_balance REAL,
+        is_day_closed INTEGER DEFAULT 0
+      )
+    ''');
+
     // Insert default room configurations
     await _insertDefaultRooms(db);
   }
@@ -97,6 +120,28 @@ class DatabaseHelper {
           screenshot_path TEXT,
           paid_date TEXT,
           FOREIGN KEY (student_id) REFERENCES students (id) ON DELETE CASCADE
+        )
+      ''');
+    }
+    if (oldVersion < 3) {
+      // Add expenses and daily_accounts tables for version 3
+      await db.execute('''
+        CREATE TABLE expenses (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT NOT NULL,
+          amount REAL NOT NULL,
+          category TEXT NOT NULL,
+          note TEXT DEFAULT '',
+          created_at TEXT NOT NULL
+        )
+      ''');
+      await db.execute('''
+        CREATE TABLE daily_accounts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          date TEXT NOT NULL UNIQUE,
+          opening_balance REAL NOT NULL,
+          closing_balance REAL,
+          is_day_closed INTEGER DEFAULT 0
         )
       ''');
     }
