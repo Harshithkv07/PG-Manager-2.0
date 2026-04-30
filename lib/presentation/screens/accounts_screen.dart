@@ -326,7 +326,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
   Widget build(BuildContext context) {
     return Consumer<AccountsProvider>(
       builder: (context, provider, _) {
-        if (provider.isLoading) {
+        if (provider.isLoading && provider.todayAccount == null && provider.expenses.isEmpty) {
           return const Center(child: CircularProgressIndicator());
         }
 

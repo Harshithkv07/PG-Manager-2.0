@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 import '../../logic/providers/auth_provider.dart';
 import '../../core/constants/app_colors.dart';
-import 'welcome_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -45,9 +45,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     );
 
     if (success && mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const WelcomeScreen()),
-      );
+      context.go('/');
     } else if (mounted) {
       // Shake animation on error
       _shakeController.forward().then((_) => _shakeController.reverse());

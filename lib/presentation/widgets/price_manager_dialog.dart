@@ -190,19 +190,39 @@ class _PriceManagerDialogState extends State<PriceManagerDialog> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _updateSingleRoom,
-                    child: const Text('Update Selected'),
+                  child: Consumer<RoomProvider>(
+                    builder: (context, roomProvider, child) {
+                      return ElevatedButton(
+                        onPressed: roomProvider.isLoading ? null : _updateSingleRoom,
+                        child: roomProvider.isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Update Selected'),
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
-                    onPressed: _updateByCapacity,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.secondaryAccent,
-                    ),
-                    child: const Text('Update All (Same Sharing)'),
+                  child: Consumer<RoomProvider>(
+                    builder: (context, roomProvider, child) {
+                      return ElevatedButton(
+                        onPressed: roomProvider.isLoading ? null : _updateByCapacity,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.secondaryAccent,
+                        ),
+                        child: roomProvider.isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Text('Update All (Same Sharing)'),
+                      );
+                    },
                   ),
                 ),
               ],

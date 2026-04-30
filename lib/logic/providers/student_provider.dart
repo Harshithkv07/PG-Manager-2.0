@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../data/models/student_model.dart';
-import '../../data/database/student_repository.dart';
-import '../../data/database/room_repository.dart';
+import '../../data/interfaces/i_student_repository.dart';
+import '../../data/interfaces/i_room_repository.dart';
+import '../../core/utils/locator.dart';
 
 class StudentProvider with ChangeNotifier {
-  final StudentRepository _studentRepo = StudentRepository();
-  final RoomRepository _roomRepo = RoomRepository();
+  final IStudentRepository _studentRepo = locator<IStudentRepository>();
+  final IRoomRepository _roomRepo = locator<IRoomRepository>();
   
   List<StudentModel> _students = [];
   List<StudentModel> _filteredStudents = [];
@@ -14,11 +15,14 @@ class StudentProvider with ChangeNotifier {
   List<StudentModel> get students => _filteredStudents;
   bool get isLoading => _isLoading;
 
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
   // Load all students
   Future<void> loadStudents() async {
-    _isLoading = true;
-    notifyListeners();
-    
+    _setLoading(true);
     try {
       _students = await _studentRepo.getAllStudents();
       _filteredStudents = List.from(_students);
@@ -26,14 +30,14 @@ class StudentProvider with ChangeNotifier {
       print('Error loading students: $e');
       _students = [];
       _filteredStudents = [];
+    } finally {
+      _setLoading(false);
     }
-    
-    _isLoading = false;
-    notifyListeners();
   }
 
   // Add student with room capacity validation
   Future<bool> addStudent(StudentModel student) async {
+    _setLoading(true);
     try {
       // Check room capacity
       final room = await _roomRepo.getRoomByNumber(student.roomNumber);
@@ -56,19 +60,31 @@ class StudentProvider with ChangeNotifier {
     } catch (e) {
       print('Error adding student: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
   // Update student
   Future<void> updateStudent(StudentModel student) async {
-    await _studentRepo.updateStudent(student);
-    await loadStudents();
+    _setLoading(true);
+    try {
+      await _studentRepo.updateStudent(student);
+      await loadStudents();
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Delete student
   Future<void> deleteStudent(int id) async {
-    await _studentRepo.deleteStudent(id);
-    await loadStudents();
+    _setLoading(true);
+    try {
+      await _studentRepo.deleteStudent(id);
+      await loadStudents();
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Search students
@@ -87,6 +103,11 @@ class StudentProvider with ChangeNotifier {
 
   // Get students by room
   Future<List<StudentModel>> getStudentsByRoom(int roomNumber) async {
-    return await _studentRepo.getStudentsByRoom(roomNumber);
+    _setLoading(true);
+    try {
+      return await _studentRepo.getStudentsByRoom(roomNumber);
+    } finally {
+      _setLoading(false);
+    }
   }
 }

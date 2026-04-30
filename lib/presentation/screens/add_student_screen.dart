@@ -205,10 +205,20 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 child: SizedBox(
                   width: 300,
                   height: 56,
-                  child: ElevatedButton.icon(
-                    onPressed: _saveStudent,
-                    icon: const Icon(Icons.save),
-                    label: const Text('SAVE STUDENT'),
+                  child: Consumer<StudentProvider>(
+                    builder: (context, studentProvider, child) {
+                      return ElevatedButton.icon(
+                        onPressed: studentProvider.isLoading ? null : _saveStudent,
+                        icon: studentProvider.isLoading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.save),
+                        label: Text(studentProvider.isLoading ? 'SAVING...' : 'SAVE STUDENT'),
+                      );
+                    },
                   ),
                 ),
               ),

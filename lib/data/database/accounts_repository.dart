@@ -1,12 +1,14 @@
+import '../interfaces/i_accounts_repository.dart';
 import '../models/expense_model.dart';
 import '../models/daily_account_model.dart';
 import 'database_helper.dart';
 
-class AccountsRepository {
+class AccountsRepository implements IAccountsRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   // ─── Daily Account Operations ───
 
+  @override
   Future<DailyAccountModel?> getDailyAccount(String date) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
@@ -18,11 +20,13 @@ class AccountsRepository {
     return DailyAccountModel.fromMap(maps.first);
   }
 
+  @override
   Future<int> insertDailyAccount(DailyAccountModel account) async {
     final db = await _dbHelper.database;
     return await db.insert('daily_accounts', account.toMap());
   }
 
+  @override
   Future<int> updateDailyAccount(DailyAccountModel account) async {
     final db = await _dbHelper.database;
     return await db.update(
@@ -34,6 +38,7 @@ class AccountsRepository {
   }
 
   /// Get the most recent closed day before [date] to carry forward balance.
+  @override
   Future<DailyAccountModel?> getPreviousClosedDay(String date) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
@@ -48,6 +53,7 @@ class AccountsRepository {
   }
 
   /// Get the most recent day (closed or open) before [date].
+  @override
   Future<DailyAccountModel?> getPreviousDay(String date) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
@@ -63,11 +69,13 @@ class AccountsRepository {
 
   // ─── Expense Operations ───
 
+  @override
   Future<int> insertExpense(ExpenseModel expense) async {
     final db = await _dbHelper.database;
     return await db.insert('expenses', expense.toMap());
   }
 
+  @override
   Future<int> updateExpense(ExpenseModel expense) async {
     final db = await _dbHelper.database;
     return await db.update(
@@ -78,6 +86,7 @@ class AccountsRepository {
     );
   }
 
+  @override
   Future<int> deleteExpense(int id) async {
     final db = await _dbHelper.database;
     return await db.delete(
@@ -87,6 +96,7 @@ class AccountsRepository {
     );
   }
 
+  @override
   Future<List<ExpenseModel>> getExpensesForDate(String date) async {
     final db = await _dbHelper.database;
     final maps = await db.query(
@@ -98,6 +108,7 @@ class AccountsRepository {
     return maps.map((m) => ExpenseModel.fromMap(m)).toList();
   }
 
+  @override
   Future<double> getTotalExpensesForDate(String date) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
@@ -110,6 +121,7 @@ class AccountsRepository {
   // ─── Monthly Summary Operations ───
 
   /// Returns a map of category → total amount for the given month (YYYY-MM).
+  @override
   Future<Map<String, double>> getMonthlyExpenseByCategory(String month) async {
     final db = await _dbHelper.database;
     final results = await db.rawQuery(
@@ -125,6 +137,7 @@ class AccountsRepository {
   }
 
   /// Returns total expenses for the given month (YYYY-MM).
+  @override
   Future<double> getMonthlyTotalExpense(String month) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
@@ -135,6 +148,7 @@ class AccountsRepository {
   }
 
   /// Get all daily accounts in a month for calendar/history view.
+  @override
   Future<List<DailyAccountModel>> getDailyAccountsForMonth(String month) async {
     final db = await _dbHelper.database;
     final maps = await db.query(

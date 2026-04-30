@@ -131,7 +131,7 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
           Expanded(
             child: Consumer<StudentProvider>(
               builder: (context, studentProvider, _) {
-                if (studentProvider.isLoading) {
+                if (studentProvider.isLoading && studentProvider.students.isEmpty) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 

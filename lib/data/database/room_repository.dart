@@ -1,10 +1,12 @@
+import '../interfaces/i_room_repository.dart';
 import '../models/room_config_model.dart';
 import 'database_helper.dart';
 
-class RoomRepository {
+class RoomRepository implements IRoomRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   // Get all rooms
+  @override
   Future<List<RoomConfigModel>> getAllRooms() async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('rooms');
@@ -12,6 +14,7 @@ class RoomRepository {
   }
 
   // Get room by number
+  @override
   Future<RoomConfigModel?> getRoomByNumber(int roomNumber) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -25,6 +28,7 @@ class RoomRepository {
   }
 
   // Get rooms by capacity
+  @override
   Future<List<RoomConfigModel>> getRoomsByCapacity(int capacity) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -36,6 +40,7 @@ class RoomRepository {
   }
 
   // Update room price
+  @override
   Future<int> updateRoomPrice(int roomNumber, int newPrice) async {
     final db = await _dbHelper.database;
     return await db.update(
@@ -47,6 +52,7 @@ class RoomRepository {
   }
 
   // Update price for all rooms with specific capacity
+  @override
   Future<int> updatePriceByCapacity(int capacity, int newPrice) async {
     final db = await _dbHelper.database;
     return await db.update(
@@ -58,12 +64,14 @@ class RoomRepository {
   }
 
   // Insert a new room
+  @override
   Future<int> insertRoom(RoomConfigModel room) async {
     final db = await _dbHelper.database;
     return await db.insert('rooms', room.toMap());
   }
 
   // Delete room
+  @override
   Future<int> deleteRoom(int roomNumber) async {
     final db = await _dbHelper.database;
     return await db.delete(

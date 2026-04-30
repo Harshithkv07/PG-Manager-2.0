@@ -9,32 +9,34 @@ class AuthProvider with ChangeNotifier {
   bool get isLoggedIn => _isLoggedIn;
   bool get isLoading => _isLoading;
 
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
   // Check login status on app start
   Future<void> checkLoginStatus() async {
-    _isLoading = true;
-    notifyListeners();
-    
-    _isLoggedIn = await _authService.isLoggedIn();
-    
-    _isLoading = false;
-    notifyListeners();
+    _setLoading(true);
+    try {
+      _isLoggedIn = await _authService.isLoggedIn();
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Login
   Future<bool> login(String username, String password) async {
-    _isLoading = true;
-    notifyListeners();
-    
-    final success = await _authService.login(username, password);
-    
-    if (success) {
-      _isLoggedIn = true;
+    _setLoading(true);
+    try {
+      final success = await _authService.login(username, password);
+      
+      if (success) {
+        _isLoggedIn = true;
+      }
+      return success;
+    } finally {
+      _setLoading(false);
     }
-    
-    _isLoading = false;
-    notifyListeners();
-    
-    return success;
   }
 
   // Logout

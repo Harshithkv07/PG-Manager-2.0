@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../data/models/room_config_model.dart';
-import '../../data/database/room_repository.dart';
-import '../../data/database/student_repository.dart';
+import '../../data/interfaces/i_room_repository.dart';
+import '../../data/interfaces/i_student_repository.dart';
+import '../../core/utils/locator.dart';
 
 class RoomProvider with ChangeNotifier {
-  final RoomRepository _roomRepo = RoomRepository();
-  final StudentRepository _studentRepo = StudentRepository();
+  final IRoomRepository _roomRepo = locator<IRoomRepository>();
+  final IStudentRepository _studentRepo = locator<IStudentRepository>();
   
   List<RoomConfigModel> _rooms = [];
   final Map<int, int> _occupancyMap = {};
@@ -26,11 +27,14 @@ class RoomProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String get currentFilter => _filter;
 
+  void _setLoading(bool value) {
+    _isLoading = value;
+    notifyListeners();
+  }
+
   // Load all rooms and calculate occupancy
   Future<void> loadRooms() async {
-    _isLoading = true;
-    notifyListeners();
-    
+    _setLoading(true);
     try {
       _rooms = await _roomRepo.getAllRooms();
       
@@ -44,10 +48,9 @@ class RoomProvider with ChangeNotifier {
       print('Error loading rooms: $e');
       _rooms = [];
       _occupancyMap.clear();
+    } finally {
+      _setLoading(false);
     }
-    
-    _isLoading = false;
-    notifyListeners();
   }
 
   // Set filter
@@ -62,6 +65,7 @@ class RoomProvider with ChangeNotifier {
     required int capacity,
     required int price,
   }) async {
+    _setLoading(true);
     try {
       // Prevent duplicate room numbers
       final existing = await _roomRepo.getRoomByNumber(roomNumber);
@@ -81,11 +85,14 @@ class RoomProvider with ChangeNotifier {
     } catch (e) {
       print('Error adding room: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
   // Delete room (only if no students assigned)
   Future<bool> deleteRoom(int roomNumber) async {
+    _setLoading(true);
     try {
       final occupancy = await _studentRepo.getRoomOccupancy(roomNumber);
       if (occupancy > 0) {
@@ -99,19 +106,31 @@ class RoomProvider with ChangeNotifier {
     } catch (e) {
       print('Error deleting room: $e');
       return false;
+    } finally {
+      _setLoading(false);
     }
   }
 
   // Update room price
   Future<void> updateRoomPrice(int roomNumber, int newPrice) async {
-    await _roomRepo.updateRoomPrice(roomNumber, newPrice);
-    await loadRooms();
+    _setLoading(true);
+    try {
+      await _roomRepo.updateRoomPrice(roomNumber, newPrice);
+      await loadRooms();
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Update price for all rooms with specific capacity
   Future<void> updatePriceByCapacity(int capacity, int newPrice) async {
-    await _roomRepo.updatePriceByCapacity(capacity, newPrice);
-    await loadRooms();
+    _setLoading(true);
+    try {
+      await _roomRepo.updatePriceByCapacity(capacity, newPrice);
+      await loadRooms();
+    } finally {
+      _setLoading(false);
+    }
   }
 
   // Get room by number

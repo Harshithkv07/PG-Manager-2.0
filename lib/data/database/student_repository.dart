@@ -1,16 +1,19 @@
+import '../interfaces/i_student_repository.dart';
 import '../models/student_model.dart';
 import 'database_helper.dart';
 
-class StudentRepository {
+class StudentRepository implements IStudentRepository {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
   // Insert a new student
+  @override
   Future<int> insertStudent(StudentModel student) async {
     final db = await _dbHelper.database;
     return await db.insert('students', student.toMap());
   }
 
   // Get all students
+  @override
   Future<List<StudentModel>> getAllStudents() async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('students');
@@ -18,6 +21,7 @@ class StudentRepository {
   }
 
   // Get student by ID
+  @override
   Future<StudentModel?> getStudentById(int id) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -31,6 +35,7 @@ class StudentRepository {
   }
 
   // Get students by room number
+  @override
   Future<List<StudentModel>> getStudentsByRoom(int roomNumber) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -42,6 +47,7 @@ class StudentRepository {
   }
 
   // Search students by name, contact, or room number
+  @override
   Future<List<StudentModel>> searchStudents(String query) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -53,6 +59,7 @@ class StudentRepository {
   }
 
   // Get students by rent status
+  @override
   Future<List<StudentModel>> getStudentsByRentStatus(String status) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
@@ -64,6 +71,7 @@ class StudentRepository {
   }
 
   // Update student
+  @override
   Future<int> updateStudent(StudentModel student) async {
     final db = await _dbHelper.database;
     return await db.update(
@@ -75,6 +83,7 @@ class StudentRepository {
   }
 
   // Delete student
+  @override
   Future<int> deleteStudent(int id) async {
     final db = await _dbHelper.database;
     return await db.delete(
@@ -85,6 +94,7 @@ class StudentRepository {
   }
 
   // Get count of students in a room
+  @override
   Future<int> getRoomOccupancy(int roomNumber) async {
     final db = await _dbHelper.database;
     final result = await db.rawQuery(
@@ -95,6 +105,7 @@ class StudentRepository {
   }
 
   // Update rent status for all students
+  @override
   Future<void> resetAllRentStatus() async {
     final db = await _dbHelper.database;
     await db.update(

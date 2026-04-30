@@ -371,7 +371,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               // Room Grid - Responsive
               Consumer<RoomProvider>(
                 builder: (context, roomProvider, _) {
-                  if (roomProvider.isLoading) {
+                  if (roomProvider.isLoading && roomProvider.rooms.isEmpty) {
                     return const Center(
                       child: Padding(
                         padding: EdgeInsets.all(32),

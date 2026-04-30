@@ -117,4 +117,15 @@ class AppTheme {
       ),
     );
   }
+
+  static ThemeData get lightTheme {
+    return ThemeData(
+      brightness: Brightness.light,
+      primaryColor: AppColors.primaryAccent,
+      colorScheme: const ColorScheme.light(
+        primary: AppColors.primaryAccent,
+        secondary: AppColors.secondaryAccent,
+      ),
+    );
+  }
 }
