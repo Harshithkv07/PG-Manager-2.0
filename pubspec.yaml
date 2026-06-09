@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   
-  dio: any
+  supabase_flutter: any
   
   # State Management
   provider: ^6.1.2

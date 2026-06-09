@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../data/models/student_model.dart';
 import '../../data/models/payment_history_model.dart';
+import '../../data/models/room_config_model.dart';
 import '../../data/interfaces/i_student_repository.dart';
 import '../../data/interfaces/i_room_repository.dart';
 import '../../data/interfaces/i_payment_history_repository.dart';
@@ -14,9 +15,13 @@ class RentProvider with ChangeNotifier {
   
   List<StudentModel> _students = [];
   bool _isLoading = false;
+  int _potentialRevenue = 0;
+  int _collectedRevenue = 0;
 
   List<StudentModel> get students => _students;
   bool get isLoading => _isLoading;
+  int get potentialRevenue => _potentialRevenue;
+  int get collectedRevenue => _collectedRevenue;
 
   void _setLoading(bool value) {
     _isLoading = value;
@@ -28,55 +33,51 @@ class RentProvider with ChangeNotifier {
     _setLoading(true);
     try {
       _students = await _studentRepo.getAllStudents();
+      await _calculateRevenue();
     } finally {
       _setLoading(false);
     }
   }
 
-  // Calculate total potential revenue
-  Future<int> getPotentialRevenue() async {
-    _setLoading(true);
+  // Helper method to compute collected and potential revenue
+  Future<void> _calculateRevenue() async {
+    int potential = 0;
+    int collected = 0;
     try {
-      int total = 0;
       final rooms = await _roomRepo.getAllRooms();
       
       for (var student in _students) {
         final room = rooms.firstWhere(
           (r) => r.roomNumber == student.roomNumber,
-          orElse: () => rooms.first,
+          orElse: () => rooms.isNotEmpty 
+              ? rooms.first 
+              : RoomConfigModel(roomNumber: 0, capacity: 0, price: 0),
         );
-        total += room.price;
+        potential += room.price;
+        if (student.rentStatus == 'Paid') {
+          collected += room.price;
+        }
       }
-      
-      return total;
-    } finally {
-      _setLoading(false);
+    } catch (e) {
+      debugPrint('Error calculating revenue: $e');
     }
+    
+    _potentialRevenue = potential;
+    _collectedRevenue = collected;
+  }
+
+  // Calculate total potential revenue
+  Future<int> getPotentialRevenue() async {
+    return _potentialRevenue;
   }
 
   // Calculate collected revenue
   Future<int> getCollectedRevenue() async {
-    _setLoading(true);
-    try {
-      int total = 0;
-      final rooms = await _roomRepo.getAllRooms();
-      
-      for (var student in _students.where((s) => s.rentStatus == 'Paid')) {
-        final room = rooms.firstWhere(
-          (r) => r.roomNumber == student.roomNumber,
-          orElse: () => rooms.first,
-        );
-        total += room.price;
-      }
-      
-      return total;
-    } finally {
-      _setLoading(false);
-    }
+    return _collectedRevenue;
   }
 
   // Mark student as paid
-  Future<void> markAsPaid(int studentId, String paymentMode, [String? screenshotPath]) async {
+  Future<void> markAsPaid(String studentId, String paymentMode, [String? screenshotPath]) async {
     _setLoading(true);
     try {
       final student = _students.firstWhere((s) => s.id == studentId);

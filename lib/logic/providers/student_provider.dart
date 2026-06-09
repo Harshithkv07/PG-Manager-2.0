@@ -11,12 +11,19 @@ class StudentProvider with ChangeNotifier {
   List<StudentModel> _students = [];
   List<StudentModel> _filteredStudents = [];
   bool _isLoading = false;
+  String? _errorMessage;
 
   List<StudentModel> get students => _filteredStudents;
   bool get isLoading => _isLoading;
+  String? get errorMessage => _errorMessage;
 
   void _setLoading(bool value) {
     _isLoading = value;
+    notifyListeners();
+  }
+
+  void _setErrorMessage(String? value) {
+    _errorMessage = value;
     notifyListeners();
   }
 
@@ -38,27 +45,48 @@ class StudentProvider with ChangeNotifier {
   // Add student with room capacity validation
   Future<bool> addStudent(StudentModel student) async {
     _setLoading(true);
+    _setErrorMessage(null);
     try {
-      // Check room capacity
-      final room = await _roomRepo.getRoomByNumber(student.roomNumber);
-      if (room == null) {
-        print('Room ${student.roomNumber} does not exist');
-        return false; // Room doesn't exist
-      }
+      // Check room capacity using all rooms from Supabase
+      final rooms = await _roomRepo.getAllRooms();
       
-      final currentOccupancy = await _studentRepo.getRoomOccupancy(student.roomNumber);
+      // Find room safely
+      final roomList = rooms.where((r) => r.roomNumber == student.roomNumber).toList();
+      if (roomList.isEmpty) {
+        _setErrorMessage('Room ${student.roomNumber} not found. Please create it first.');
+        print('Room ${student.roomNumber} not found');
+        return false;
+      }
+      final room = roomList.first;
+      
+      // Get all students to calculate occupancy accurately using UUID comparisons
+      final allStudents = await _studentRepo.getStudents();
+      
+      // Calculate current occupancy (comparing string to string if roomId is used, or roomNumber)
+      final currentOccupancy = allStudents.where((s) {
+        if (s.roomId != null && room.id != null) {
+          return s.roomId == room.id;
+        }
+        // Fallback to roomNumber
+        return s.roomNumber == room.roomNumber;
+      }).length;
+      
       if (currentOccupancy >= room.capacity) {
-        print('Room ${student.roomNumber} is full (${currentOccupancy}/${room.capacity})');
+        final errorMsg = 'Room ${student.roomNumber} is full ($currentOccupancy/${room.capacity})';
+        _setErrorMessage(errorMsg);
+        print(errorMsg);
         return false; // Room is full
       }
       
-      // Add student
-      final id = await _studentRepo.insertStudent(student);
-      print('Student added successfully with ID: $id');
+      // Add student via Supabase
+      await _studentRepo.addStudent(student);
+      print('Student added successfully');
       await loadStudents();
       return true;
     } catch (e) {
-      print('Error adding student: $e');
+      final errorMsg = 'Error adding student: $e';
+      _setErrorMessage(errorMsg);
+      print(errorMsg);
       return false;
     } finally {
       _setLoading(false);
@@ -77,7 +105,7 @@ class StudentProvider with ChangeNotifier {
   }
 
   // Delete student
-  Future<void> deleteStudent(int id) async {
+  Future<void> deleteStudent(String id) async {
     _setLoading(true);
     try {
       await _studentRepo.deleteStudent(id);

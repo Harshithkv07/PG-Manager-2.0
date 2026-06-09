@@ -29,7 +29,7 @@ class _RentScreenState extends State<RentScreen> {
     });
   }
 
-  Future<void> _markAsPaid(int studentId, String studentName, int roomNumber) async {
+  Future<void> _markAsPaid(String studentId, String studentName, int roomNumber) async {
     final paymentMode = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -101,7 +101,7 @@ class _RentScreenState extends State<RentScreen> {
     }
   }
 
-  Future<void> _viewCurrentMonthScreenshot(int studentId) async {
+  Future<void> _viewCurrentMonthScreenshot(String studentId) async {
     final currentMonth = DateFormat('yyyy-MM').format(DateTime.now());
     final payment = await _paymentHistoryRepository.getPaymentForMonth(
       studentId,
@@ -200,84 +200,76 @@ class _RentScreenState extends State<RentScreen> {
               // Revenue Tracker
               Consumer2<RentProvider, RoomProvider>(
                 builder: (context, rentProvider, roomProvider, _) {
-                  return FutureBuilder<List<int>>(
-                    future: Future.wait([
-                      rentProvider.getCollectedRevenue(),
-                      rentProvider.getPotentialRevenue(),
-                    ]),
-                    builder: (context, snapshot) {
-                      final collected = snapshot.data?[0] ?? 0;
-                      final potential = snapshot.data?[1] ?? 0;
-                      final percentage = potential > 0 ? (collected / potential) : 0.0;
-                      
-                      return Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(24),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  final collected = rentProvider.collectedRevenue;
+                  final potential = rentProvider.potentialRevenue;
+                  final percentage = potential > 0 ? (collected / potential) : 0.0;
+                  
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Monthly Revenue Tracker',
+                            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                'Monthly Revenue Tracker',
-                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const Text('Collected', style: TextStyle(color: AppColors.textSecondary)),
-                                      Text(
-                                        '₹${collected.toString()}',
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.successColor,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.end,
-                                    children: [
-                                      const Text('Potential', style: TextStyle(color: AppColors.textSecondary)),
-                                      Text(
-                                        '₹${potential.toString()}',
-                                        style: const TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.primaryAccent,
-                                        ),
-                                      ),
-                                    ],
+                                  const Text('Collected', style: TextStyle(color: AppColors.textSecondary)),
+                                  Text(
+                                    '₹${collected.toString()}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.successColor,
+                                    ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
-                              
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: LinearProgressIndicator(
-                                  value: percentage,
-                                  minHeight: 12,
-                                  backgroundColor: AppColors.secondaryBackground,
-                                  valueColor: const AlwaysStoppedAnimation<Color>(AppColors.successColor),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                '${(percentage * 100).toStringAsFixed(1)}% Collected',
-                                style: const TextStyle(color: AppColors.textSecondary),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  const Text('Potential', style: TextStyle(color: AppColors.textSecondary)),
+                                  Text(
+                                    '₹${potential.toString()}',
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.primaryAccent,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ),
-                      );
-                    },
+                          const SizedBox(height: 16),
+                          
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: LinearProgressIndicator(
+                              value: percentage,
+                              minHeight: 12,
+                              backgroundColor: AppColors.secondaryBackground,
+                              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.successColor),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '${(percentage * 100).toStringAsFixed(1)}% Collected',
+                            style: const TextStyle(color: AppColors.textSecondary),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),

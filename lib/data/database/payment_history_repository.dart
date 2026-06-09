@@ -14,7 +14,7 @@ class PaymentHistoryRepository implements IPaymentHistoryRepository {
 
   // Get all payment history for a student
   @override
-  Future<List<PaymentHistoryModel>> getStudentPaymentHistory(int studentId) async {
+  Future<List<PaymentHistoryModel>> getStudentPaymentHistory(String studentId) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'payment_history',
@@ -27,7 +27,7 @@ class PaymentHistoryRepository implements IPaymentHistoryRepository {
 
   // Get payment record for specific month
   @override
-  Future<PaymentHistoryModel?> getPaymentForMonth(int studentId, String month) async {
+  Future<PaymentHistoryModel?> getPaymentForMonth(String studentId, String month) async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query(
       'payment_history',
@@ -78,7 +78,7 @@ class PaymentHistoryRepository implements IPaymentHistoryRepository {
 
   // Delete all payment records for a student
   @override
-  Future<int> deleteStudentPaymentHistory(int studentId) async {
+  Future<int> deleteStudentPaymentHistory(String studentId) async {
     final db = await _dbHelper.database;
     return await db.delete(
       'payment_history',
@@ -89,7 +89,7 @@ class PaymentHistoryRepository implements IPaymentHistoryRepository {
 
   // Get payment statistics
   @override
-  Future<Map<String, int>> getPaymentStats(int studentId) async {
+  Future<Map<String, int>> getPaymentStats(String studentId) async {
     final history = await getStudentPaymentHistory(studentId);
     final paid = history.where((p) => p.paymentStatus == 'Paid').length;
     final pending = history.where((p) => p.paymentStatus == 'Pending').length;

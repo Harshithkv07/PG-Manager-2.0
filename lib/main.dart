@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/locator.dart';
 import 'core/routes/app_router.dart';
@@ -11,9 +12,12 @@ import 'logic/providers/rent_provider.dart';
 import 'logic/providers/accounts_provider.dart';
 import 'logic/providers/theme_provider.dart';
 
+import 'data/database/database_helper.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await Supabase.initialize(url: 'http://192.168.1.63:54321', anonKey: 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH');
   setupLocator();
   runApp(const MyApp());
 }

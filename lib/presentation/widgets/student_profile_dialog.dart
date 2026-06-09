@@ -198,11 +198,11 @@ class _StudentProfileDialogState extends State<StudentProfileDialog> {
                     ),
                     const Divider(height: 24),
                     
-                    _buildInfoRow('College/Workplace', widget.student.college),
+                    _buildInfoRow('College/Workplace', widget.student.collegeWorkplace),
                     _buildInfoRow('Hometown', widget.student.hometown),
                     _buildInfoRow('Address', widget.student.address),
                     _buildInfoRow('Advance Amount', '₹${widget.student.advanceAmount}'),
-                    _buildInfoRow('Agreement Submitted', widget.student.agreementSubmitted),
+                    _buildInfoRow('Agreement Submitted', widget.student.agreementSubmitted ? 'Yes' : 'No'),
                     _buildInfoRow('Rent Status', widget.student.rentStatus),
                     _buildInfoRow('Payment Mode', widget.student.paymentMode),
                   ],

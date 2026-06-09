@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
+import 'students_screen.dart';
+import '../../logic/providers/auth_provider.dart';
 import '../../core/constants/app_colors.dart';
 import 'accounts_screen.dart';
 import 'add_student_screen.dart';
@@ -99,6 +103,27 @@ class _MainScreenState extends State<MainScreen> {
                   ),
                 ),
               );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.group_work),
+            tooltip: 'SaaS Students',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const StudentsScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+              await authProvider.logout();
+              if (context.mounted) {
+                context.go('/login');
+              }
             },
           ),
         ],

@@ -1,5 +1,8 @@
 class StudentModel {
-  final int? id;
+  final String? id;
+  final String? roomId;
+  final String? phoneNumber;
+  final String? joinDate;
   final int roomNumber;
   final String name;
   final String dob;
@@ -8,29 +11,32 @@ class StudentModel {
   final String fatherNumber;
   final String motherName;
   final String motherNumber;
-  final String college;
+  final String collegeWorkplace;
   final String hometown;
   final String address;
-  final String advanceAmount;
-  final String agreementSubmitted;
+  final double advanceAmount;
+  final bool agreementSubmitted;
   final String rentStatus;
   final String paymentMode;
 
   StudentModel({
     this.id,
-    required this.roomNumber,
+    this.roomId,
+    this.phoneNumber,
+    this.joinDate,
+    this.roomNumber = 0,
     required this.name,
-    required this.dob,
-    required this.contact,
-    required this.fatherName,
-    required this.fatherNumber,
-    required this.motherName,
-    required this.motherNumber,
-    required this.college,
-    required this.hometown,
-    required this.address,
-    required this.advanceAmount,
-    required this.agreementSubmitted,
+    this.dob = '',
+    this.contact = '',
+    this.fatherName = '',
+    this.fatherNumber = '',
+    this.motherName = '',
+    this.motherNumber = '',
+    this.collegeWorkplace = '',
+    this.hometown = '',
+    this.address = '',
+    this.advanceAmount = 0.0,
+    this.agreementSubmitted = false,
     this.rentStatus = 'Pending',
     this.paymentMode = '-',
   });
@@ -38,18 +44,17 @@ class StudentModel {
   // Convert to Map for database
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'room_number': roomNumber,
       'name': name,
       'dob': dob,
-      'contact': contact,
+      'phone_number': phoneNumber,
       'father_name': fatherName,
       'father_number': fatherNumber,
       'mother_name': motherName,
       'mother_number': motherNumber,
-      'college': college,
+      'college_workplace': collegeWorkplace,
       'hometown': hometown,
       'address': address,
+      'room_id': roomId,
       'advance_amount': advanceAmount,
       'agreement_submitted': agreementSubmitted,
       'rent_status': rentStatus,
@@ -60,20 +65,23 @@ class StudentModel {
   // Create from Map
   factory StudentModel.fromMap(Map<String, dynamic> map) {
     return StudentModel(
-      id: map['id'],
-      roomNumber: map['room_number'],
-      name: map['name'],
-      dob: map['dob'],
-      contact: map['contact'],
-      fatherName: map['father_name'],
-      fatherNumber: map['father_number'],
-      motherName: map['mother_name'],
-      motherNumber: map['mother_number'],
-      college: map['college'],
-      hometown: map['hometown'],
-      address: map['address'],
-      advanceAmount: map['advance_amount'],
-      agreementSubmitted: map['agreement_submitted'],
+      id: map['id']?.toString(),
+      roomId: map['room_id']?.toString(),
+      phoneNumber: map['phone_number']?.toString() ?? map['contact']?.toString(),
+      joinDate: map['join_date']?.toString(),
+      roomNumber: map['room_number'] != null ? int.tryParse(map['room_number'].toString()) ?? 0 : 0,
+      name: map['name'] ?? '',
+      dob: map['dob'] ?? '',
+      contact: map['contact'] ?? '',
+      fatherName: map['father_name'] ?? '',
+      fatherNumber: map['father_number'] ?? '',
+      motherName: map['mother_name'] ?? '',
+      motherNumber: map['mother_number'] ?? '',
+      collegeWorkplace: map['college_workplace'] ?? map['college'] ?? '',
+      hometown: map['hometown'] ?? '',
+      address: map['address'] ?? '',
+      advanceAmount: map['advance_amount'] != null ? double.tryParse(map['advance_amount'].toString()) ?? 0.0 : 0.0,
+      agreementSubmitted: map['agreement_submitted'] == true || map['agreement_submitted']?.toString().toLowerCase() == 'true',
       rentStatus: map['rent_status'] ?? 'Pending',
       paymentMode: map['payment_mode'] ?? '-',
     );
@@ -81,7 +89,10 @@ class StudentModel {
 
   // Copy with method for updates
   StudentModel copyWith({
-    int? id,
+    String? id,
+    String? roomId,
+    String? phoneNumber,
+    String? joinDate,
     int? roomNumber,
     String? name,
     String? dob,
@@ -90,16 +101,19 @@ class StudentModel {
     String? fatherNumber,
     String? motherName,
     String? motherNumber,
-    String? college,
+    String? collegeWorkplace,
     String? hometown,
     String? address,
-    String? advanceAmount,
-    String? agreementSubmitted,
+    double? advanceAmount,
+    bool? agreementSubmitted,
     String? rentStatus,
     String? paymentMode,
   }) {
     return StudentModel(
       id: id ?? this.id,
+      roomId: roomId ?? this.roomId,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      joinDate: joinDate ?? this.joinDate,
       roomNumber: roomNumber ?? this.roomNumber,
       name: name ?? this.name,
       dob: dob ?? this.dob,
@@ -108,7 +122,7 @@ class StudentModel {
       fatherNumber: fatherNumber ?? this.fatherNumber,
       motherName: motherName ?? this.motherName,
       motherNumber: motherNumber ?? this.motherNumber,
-      college: college ?? this.college,
+      collegeWorkplace: collegeWorkplace ?? this.collegeWorkplace,
       hometown: hometown ?? this.hometown,
       address: address ?? this.address,
       advanceAmount: advanceAmount ?? this.advanceAmount,

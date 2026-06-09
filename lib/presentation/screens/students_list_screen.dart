@@ -30,7 +30,7 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
     super.dispose();
   }
 
-  void _showStudentProfile(BuildContext context, int studentId) {
+  void _showStudentProfile(BuildContext context, String studentId) {
     final studentProvider = Provider.of<StudentProvider>(context, listen: false);
     final student = studentProvider.students.firstWhere((s) => s.id == studentId);
     
@@ -40,7 +40,7 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
     );
   }
 
-  Future<void> _deleteStudent(int studentId) async {
+  Future<void> _deleteStudent(String studentId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -268,7 +268,7 @@ class _StudentsListScreenState extends State<StudentsListScreen> {
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            student.college,
+                            student.collegeWorkplace,
                             style: TextStyle(
                               fontSize: 13,
                               color: AppColors.textSecondary,

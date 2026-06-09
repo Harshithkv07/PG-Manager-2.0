@@ -39,6 +39,21 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  // Register
+  Future<bool> register(String email, String password, String pgName) async {
+    _setLoading(true);
+    try {
+      final success = await _authService.register(email, password, pgName);
+      
+      if (success) {
+        _isLoggedIn = true;
+      }
+      return success;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Logout
   Future<void> logout() async {
     await _authService.logout();

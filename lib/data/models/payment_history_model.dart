@@ -1,6 +1,6 @@
 class PaymentHistoryModel {
   final int? id;
-  final int studentId;
+  final String studentId;
   final String month; // Format: YYYY-MM
   final String paymentStatus; // 'Paid' or 'Pending'
   final String paymentMode; // 'Cash', 'UPI', or '-'
@@ -32,7 +32,7 @@ class PaymentHistoryModel {
   factory PaymentHistoryModel.fromMap(Map<String, dynamic> map) {
     return PaymentHistoryModel(
       id: map['id'] as int?,
-      studentId: map['student_id'] as int,
+      studentId: map['student_id']?.toString() ?? '',
       month: map['month'] as String,
       paymentStatus: map['payment_status'] as String,
       paymentMode: map['payment_mode'] as String,
@@ -43,7 +43,7 @@ class PaymentHistoryModel {
 
   PaymentHistoryModel copyWith({
     int? id,
-    int? studentId,
+    String? studentId,
     String? month,
     String? paymentStatus,
     String? paymentMode,

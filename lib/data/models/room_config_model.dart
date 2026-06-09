@@ -1,5 +1,5 @@
 class RoomConfigModel {
-  final int? id;
+  final String? id;
   final int roomNumber;
   final int capacity;
   final int price;
@@ -24,18 +24,45 @@ class RoomConfigModel {
 
   // Create from Map
   factory RoomConfigModel.fromMap(Map<String, dynamic> map) {
-    // Handle both sqlite ('price', int room_number) and backend ('base_rent', string room_number)
+    // Safely parse room number
+    int parsedRoomNumber = 0;
+    if (map['room_number'] != null) {
+      if (map['room_number'] is int) {
+        parsedRoomNumber = map['room_number'];
+      } else {
+        parsedRoomNumber = int.tryParse(map['room_number'].toString()) ?? 0;
+      }
+    }
+
+    // Safely parse capacity
+    int parsedCapacity = 0;
+    if (map['capacity'] != null) {
+      if (map['capacity'] is int) {
+        parsedCapacity = map['capacity'];
+      } else {
+        parsedCapacity = int.tryParse(map['capacity'].toString()) ?? 0;
+      }
+    }
+
+    // Safely parse price
+    int parsedPrice = 0;
+    if (map['base_rent'] != null) {
+      parsedPrice = (map['base_rent'] as num).toInt();
+    } else if (map['price'] != null) {
+      parsedPrice = (map['price'] as num).toInt();
+    }
+
     return RoomConfigModel(
-      id: map['id'],
-      roomNumber: map['room_number'] is String ? int.tryParse(map['room_number']) ?? 0 : map['room_number'],
-      capacity: map['capacity'],
-      price: map['base_rent'] != null ? (map['base_rent'] as num).toInt() : map['price'],
+      id: map['id']?.toString(),
+      roomNumber: parsedRoomNumber,
+      capacity: parsedCapacity,
+      price: parsedPrice,
     );
   }
 
   // Copy with method for updates
   RoomConfigModel copyWith({
-    int? id,
+    String? id,
     int? roomNumber,
     int? capacity,
     int? price,

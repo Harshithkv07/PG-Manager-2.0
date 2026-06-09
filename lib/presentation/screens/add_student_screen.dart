@@ -107,11 +107,11 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       fatherNumber: _fatherNumberController.text.trim(),
       motherName: _motherNameController.text.trim(),
       motherNumber: _motherNumberController.text.trim(),
-      college: _collegeController.text.trim(),
+      collegeWorkplace: _collegeController.text.trim(),
       hometown: _hometownController.text.trim(),
       address: _addressController.text.trim(),
-      advanceAmount: _advanceAmountController.text.trim(),
-      agreementSubmitted: _agreementSubmitted,
+      advanceAmount: double.tryParse(_advanceAmountController.text.trim()) ?? 0.0,
+      agreementSubmitted: _agreementSubmitted == 'Yes',
     );
 
     final studentProvider = Provider.of<StudentProvider>(context, listen: false);
@@ -157,8 +157,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       _clearForm();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Room is full! Cannot add more students.'),
+        SnackBar(
+          content: Text(studentProvider.errorMessage ?? 'Room is full! Cannot add more students.'),
           backgroundColor: AppColors.errorColor,
         ),
       );

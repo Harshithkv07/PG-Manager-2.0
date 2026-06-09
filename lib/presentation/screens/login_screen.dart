@@ -14,8 +14,10 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _pgNameController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
+  bool _isLogin = true;
   late AnimationController _shakeController;
 
   @override
@@ -31,6 +33,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   void dispose() {
     _usernameController.dispose();
     _passwordController.dispose();
+    _pgNameController.dispose();
     _shakeController.dispose();
     super.dispose();
   }
@@ -39,10 +42,20 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final success = await authProvider.login(
-      _usernameController.text,
-      _passwordController.text,
-    );
+    
+    bool success;
+    if (_isLogin) {
+      success = await authProvider.login(
+        _usernameController.text,
+        _passwordController.text,
+      );
+    } else {
+      success = await authProvider.register(
+        _usernameController.text,
+        _passwordController.text,
+        _pgNameController.text,
+      );
+    }
 
     if (success && mounted) {
       context.go('/');
@@ -129,21 +142,43 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Login to continue',
+                            _isLogin ? 'Login to continue' : 'Register a new account',
                             style: Theme.of(context).textTheme.bodyMedium,
                           ),
                           const SizedBox(height: 32),
                           
-                          // Username field
+                          if (!_isLogin) ...[
+                            // PG Name field
+                            TextFormField(
+                              controller: _pgNameController,
+                              decoration: const InputDecoration(
+                                labelText: 'PG Name',
+                                prefixIcon: Icon(Icons.business),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter PG Name';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          
+                          // Email field
                           TextFormField(
                             controller: _usernameController,
+                            keyboardType: TextInputType.emailAddress,
                             decoration: const InputDecoration(
-                              labelText: 'Username',
-                              prefixIcon: Icon(Icons.person),
+                              labelText: 'Email Address',
+                              prefixIcon: Icon(Icons.email),
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter username';
+                                return 'Please enter your email';
+                              }
+                              if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                return 'Please enter a valid email address';
                               }
                               return null;
                             },
@@ -199,10 +234,21 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                             color: Colors.white,
                                           ),
                                         )
-                                      : const Text('LOGIN'),
+                                      : Text(_isLogin ? 'Login' : 'Register'),
                                 ),
                               );
                             },
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _isLogin = !_isLogin;
+                              });
+                            },
+                            child: Text(
+                              _isLogin ? "Don't have an account? Sign Up" : "Already have an account? Login",
+                            ),
                           ),
                         ],
                       ),
